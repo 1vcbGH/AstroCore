@@ -1,0 +1,37 @@
+name: AstroCore
+version: 1.0.0
+main: me.vcb.astrocore.AstroCore
+author: 1vcb
+api-version: 1.21
+
+loadbefore:
+- ShopGUIPlus
+
+depend:
+- ProtocolLib
+
+softdepend:
+- SkinsRestorer
+- AquaCore
+- AtomAPI
+- Chronium
+- CoreAPI
+- Core
+- GroupManager
+- HestiaCore
+- LuckPerms
+- mCore
+- MizuAPI
+- NCore
+- PermissionsEx
+- PowerfulPerms
+- Spark
+- UltraPermissions
+- Zoom
+- Zoot
+- zPermissions
+- Vault
+- ViaVersion
+- ProtocolSupport
+- MineIsland
+- LunarClientAPI

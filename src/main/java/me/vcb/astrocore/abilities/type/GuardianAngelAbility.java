@@ -1,0 +1,68 @@
+package me.vcb.astrocore.abilities.type;
+
+import me.vcb.astrocore.abilities.AbilityItem;
+import me.vcb.astrocore.abilities.AbilityType;
+import me.vcb.astrocore.config.ConfigFile;
+import me.vcb.astrocore.config.Language;
+import me.vcb.astrocore.timer.TimerManager;
+import me.vcb.astrocore.timer.cooldown.CooldownTimer;
+import me.vcb.astrocore.utils.StringUtils;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+
+public class GuardianAngelAbility extends AbilityItem implements Listener {
+
+    private int healthThreshold;
+    private int duration;
+
+    private final String cooldownName;
+
+    public GuardianAngelAbility(ConfigFile config) {
+        super(AbilityType.GUARDIAN_ANGEL, "GUARDIAN_ANGEL", config);
+
+        this.cooldownName = "GuardianAngel";
+        this.overrideActivationMessage();
+    }
+
+    @Override
+    protected void loadAdditionalData(ConfigurationSection abilitySection) {
+        this.healthThreshold = abilitySection.getInt("HEALTH");
+        this.duration = abilitySection.getInt("DURATION");
+    }
+
+    public void sendActivationMessage(Player player, int health) {
+        this.activationMessage.forEach(line -> player.sendMessage(line
+            .replace("<abilityName>", this.displayName)
+            .replace("<amount>", String.valueOf(health / 2.0))
+            .replace("<cooldown>", StringUtils.formatDurationWords(this.cooldown * 1000L))));
+    }
+
+    @Override
+    protected boolean onItemClick(Player player, PlayerInteractEvent event) {
+        TimerManager.getInstance().getCooldownTimer().activate(player, this.cooldownName, this.duration,
+            Language.ABILITIES_PREFIX + Language.ABILITIES_GUARDIAN_ANGEL_EXPIRED);
+
+        this.sendActivationMessage(player, this.healthThreshold);
+        return true;
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityDamage(EntityDamageEvent event) {
+        if(!(event.getEntity() instanceof Player)) return;
+
+        Player player = (Player) event.getEntity();
+        CooldownTimer cooldownTimer = TimerManager.getInstance().getCooldownTimer();
+
+        if(!cooldownTimer.isActive(player, this.cooldownName)) return;
+        if(player.getHealth() > this.healthThreshold) return;
+
+        player.setHealth(player.getMaxHealth());
+        cooldownTimer.cancel(player, this.cooldownName);
+
+        player.sendMessage(Language.ABILITIES_PREFIX + Language.ABILITIES_GUARDIAN_ANGEL_HEALED);
+    }
+}
